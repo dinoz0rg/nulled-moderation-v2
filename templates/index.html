@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacklist Management</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/table-management.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Blacklist Management</h1>
+
+        <!-- Description Table -->
+        <div class="table-section">
+            <h2>Descriptions</h2>
+            <div class="table-wrapper">
+                <div class="scrollable-content">
+                    <table class="editable-table">
+                        <tbody>
+                            {% for desc in descriptions %}
+                            <tr>
+                                <td class="row-number">{{ loop.index }}</td>
+                                <td contenteditable="true" data-id="{{ desc.id }}" data-table="description">{{ desc.description }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td class="row-number">New</td>
+                                <td contenteditable="true" data-id="new" data-table="description" class="placeholder">Add new description</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Title Table -->
+        <div class="table-section">
+            <h2>Titles</h2>
+            <div class="table-wrapper">
+                <div class="scrollable-content">
+                    <table class="editable-table">
+                        <tbody>
+                            {% for title in titles %}
+                            <tr>
+                                <td class="row-number">{{ loop.index }}</td>
+                                <td contenteditable="true" data-id="{{ title.id }}" data-table="title">{{ title.title }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td class="row-number">New</td>
+                                <td contenteditable="true" data-id="new" data-table="title" class="placeholder">Add new title</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blacklist Links Table -->
+        <div class="table-section">
+            <h2>Links</h2>
+            <div class="table-wrapper">
+                <div class="scrollable-content">
+                    <table class="editable-table">
+                        <tbody>
+                            {% for link in links %}
+                            <tr>
+                                <td class="row-number">{{ loop.index }}</td>
+                                <td contenteditable="true" data-id="{{ link.id }}" data-table="links">{{ link.link }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td class="row-number">New</td>
+                                <td contenteditable="true" data-id="new" data-table="links" class="placeholder">Add new link</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

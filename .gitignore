@@ -1,0 +1,14 @@
+.idea/*
+.venv/*
+log/*
+__pycache__/*
+fastapi_ver/*
+
+*.sql
+*.zip
+*.rar
+*.txt
+
+test*
+
+.env
