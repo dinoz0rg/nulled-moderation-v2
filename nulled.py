@@ -177,12 +177,20 @@ def monitor_forum_page(page_url, page, rules_config_path="config/rules.yaml"):
         for rule in rules:
             if thread_info['op_user_group'] == rule["op_user_group"]:
                 if evaluate_conditions(thread_info, rule["conditions"]):
+                    banned = False  # Flag to ensure user is banned only once per rule
                     for field in rule["blacklist_fields"]:
+                        if banned:
+                            break
                         keywords = blacklist_data.get(field, [])
                         for keyword in keywords:
                             if field_match(field, keyword, thread_info):
                                 reason = f"Keyword '{keyword}' found in {field} - {link}."
                                 ban_user_by_uid(thread_info["op_userid"], reason)
+                                banned = True
+                                break
+                    if banned:
+                        break
+
 
 # Monitor forum pages in cycles
 def monitor_forum(max_threads=5, page_range=3, cycle_delay=120, stop_signal=None, rules_config_path="config/rules.yaml"):
