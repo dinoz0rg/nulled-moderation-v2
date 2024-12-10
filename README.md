@@ -24,17 +24,20 @@ This project is a web-based application that monitors user activities and detect
 ```
 project/
 ├── static/
-│   ├── styles.css         # CSS styles for the frontend
-│   └── jquery-3.6.0.min.js # jQuery library
+│   ├── styles.css           # CSS styles for the frontend
 ├── js/
-│   └── table-management.js # JavaScript for dynamic table functionality
+│   └── table-management.js  # JavaScript for dynamic table functionality
+│   └── jquery-3.6.0.min.js  # jQuery library
 ├── templates/
-│   └── index.html         # Main HTML template
-├── database.py            # Database models and utilities
-├── helpers.py             # Logger setup and utilities
-├── main.py                # FastAPI application
-├── nulled.py              # Forum monitoring logic
-└── README.md              # Project documentation
+│   └── index.html           # Main HTML template
+├── config/
+│   └── .env                 # Forum config
+│   └── rules.yaml           # Ban rules config
+├── database.py              # Database models and utilities
+├── helpers.py               # Logger setup and utilities
+├── main.py                  # FastAPI application
+├── nulled.py                # Forum monitoring logic
+└── README.md                # Project documentation
 ```
 
 ## Technologies Used
