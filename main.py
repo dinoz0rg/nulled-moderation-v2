@@ -11,6 +11,10 @@ import uvicorn
 from typing import Union
 from datetime import datetime, timezone
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
+
+AUTO_START_MONITOR = False  # Set this True to enable monitor auto-start
 
 
 class TableManager:
@@ -72,48 +76,75 @@ class MonitorManager:
         self.monitor_thread = None
         self.thread_running = False
         self.thread_lock = threading.Lock()
+        self.jobs = {}
 
     def start(self, max_threads=5, page_range=3, cycle_delay=120):
         """Start the monitoring thread."""
         with self.thread_lock:
             if self.thread_running:
-                raise HTTPException(status_code=400, detail="Monitor is already running.")
+                raise RuntimeError("Monitor is already running.")
+
+            job_id = len(self.jobs) + 1
+            self.jobs[job_id] = {
+                "status": "running",
+                "start_time": datetime.now(timezone.utc),
+                "max_threads": max_threads,
+                "page_range": page_range,
+                "cycle_delay": cycle_delay,
+            }
+
             self.thread_running = True
             self.monitor_thread = threading.Thread(
                 target=self._run_monitor,
-                args=(max_threads, page_range, cycle_delay),
-                daemon=True
+                args=(max_threads, page_range, cycle_delay, job_id),
+                daemon=True,
             )
             self.monitor_thread.start()
-            return {"status": "success", "message": "Monitor started."}
 
     def stop(self):
         """Stop the monitoring thread."""
         with self.thread_lock:
             if not self.thread_running:
-                raise HTTPException(status_code=400, detail="Monitor is not running.")
+                raise RuntimeError("Monitor is not running.")
             self.thread_running = False
 
         if self.monitor_thread:
-            self.monitor_thread.join(0)  # Ensure the thread stops cleanly
-        return {"status": "success", "message": "Monitor stopped."}
+            self.monitor_thread.join(0)
 
-    def _run_monitor(self, max_threads, page_range, cycle_delay):
+        for job_id in self.jobs:
+            self.jobs[job_id]["status"] = "stopped"
+
+    def check_jobs(self):
+        """Retrieve all jobs and their statuses."""
+        return self.jobs
+
+    def _run_monitor(self, max_threads, page_range, cycle_delay, job_id):
         """Wrapper for monitor_forum to include a stop signal."""
         def stop_signal():
             return self.thread_running
 
         monitor_forum(max_threads=max_threads, page_range=page_range, cycle_delay=cycle_delay, stop_signal=stop_signal)
-
+        self.jobs[job_id]["status"] = "completed"
 
 
 # Initialize FastAPI and MonitorManager
-app = FastAPI()
 monitor_manager = MonitorManager()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/js", StaticFiles(directory="js"), name="js")
 templates = Jinja2Templates(directory="templates")
 start_time = datetime.now(timezone.utc)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    if AUTO_START_MONITOR:
+        monitor_manager.start()
+    yield
+    monitor_manager.stop()
+
+
+app = FastAPI(lifespan=lifespan)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/js", StaticFiles(directory="js"), name="js")
 
 
 class HealthStatus(BaseModel):
@@ -143,13 +174,21 @@ def health_check():
 @app.post("/start-monitor")
 def start_monitor_endpoint(max_threads: int = 5, page_range: int = 3, cycle_delay: int = 120):
     """Endpoint to start the monitor with customizable parameters."""
-    return monitor_manager.start(max_threads=max_threads, page_range=page_range, cycle_delay=cycle_delay)
+    monitor_manager.start(max_threads=max_threads, page_range=page_range, cycle_delay=cycle_delay)
+    return {"status": "success", "message": "Monitor started."}
 
 
 @app.post("/stop-monitor")
 def stop_monitor_endpoint():
     """Endpoint to stop the monitor."""
-    return monitor_manager.stop()
+    monitor_manager.stop()
+    return {"status": "success", "message": "Monitor stopped."}
+
+
+@app.get("/check-jobs")
+def check_jobs_endpoint():
+    """Endpoint to retrieve the status of all jobs."""
+    return monitor_manager.check_jobs()
 
 
 @app.post("/edit/{table_name}/{id}")
