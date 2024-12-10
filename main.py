@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
 
-AUTO_START_MONITOR = False  # Set this True to enable monitor auto-start
+AUTO_START_MONITOR = True  # Set this True to enable monitor auto-start
 
 
 class TableManager:
@@ -82,7 +82,7 @@ class MonitorManager:
         """Start the monitoring thread."""
         with self.thread_lock:
             if self.thread_running:
-                raise RuntimeError("Monitor is already running.")
+                raise HTTPException(status_code=400, detail="Monitor is already running.")
 
             job_id = len(self.jobs) + 1
             self.jobs[job_id] = {
@@ -105,7 +105,7 @@ class MonitorManager:
         """Stop the monitoring thread."""
         with self.thread_lock:
             if not self.thread_running:
-                raise RuntimeError("Monitor is not running.")
+                raise HTTPException(status_code=400, detail="Monitor is not running.")
             self.thread_running = False
 
         if self.monitor_thread:
