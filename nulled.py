@@ -92,29 +92,29 @@ def get_internal_thread_info(url):
     soup = BeautifulSoup(response.text, "html.parser")
     try:
         op_userid = soup.find('a', {'hovercard-id': True})['hovercard-id']
-        op_user_posts = int(soup.find_all('div', class_='pu-content')[0].get_text(strip=True).replace("Posts:", "").strip())
-        op_user_threads = int(soup.find_all('div', class_='pu-content')[1].get_text(strip=True).replace("Threads:", "").strip())
+        op_user_posts = soup.find_all('div', class_='pu-content')[0].get_text(strip=True).replace("Posts:", "").strip()
+        op_user_threads = soup.find_all('div', class_='pu-content')[1].get_text(strip=True).replace("Threads:", "").strip()
         op_thread_title = soup.title.string
         op_thread_descriptions = soup.find('meta', {'name': 'description'}).get('content', '')
         op_thread_descriptions_full = soup.find('section', id='nulledPost').text.strip() if soup.find('section', id='nulledPost') else None
         op_thread_links = ', '.join(div.find('a', href=True)['href'] for div in soup.find_all('div', class_='hiddencontent') if div.find('a', href=True)) if soup.find_all('div', class_='hiddencontent') else ""
         op_thread_keywords = soup.find('meta', {'name': 'keywords'}).get('content', '')
         op_user_signature = soup.find("div", class_="signature").get_text(strip=True) if soup.find("div", class_="signature") else ""
-        op_reputation = soup.find('span', class_='x-smalltext', string='Rep').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Rep') else None
+        op_user_reputation = soup.find('span', class_='x-smalltext', string='Rep').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Rep') else None
         op_user_likes = soup.find('span', class_='x-smalltext', string='Likes').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Likes') else 0
         op_user_group = soup.find('li', class_='group_icon').find('img')['src'].split('/')[-1].replace('.png', '') if soup.find('li', class_='group_icon') and soup.find('li', class_='group_icon').find('img') else None
         ret = {
             "op_thread_url": url,
             "op_userid": op_userid,
-            "op_user_posts": op_user_posts,
-            "op_user_threads": op_user_threads,
+            "op_user_posts": int(op_user_posts),
+            "op_user_threads": int(op_user_threads),
             "op_thread_title": op_thread_title,
             "op_thread_descriptions": op_thread_descriptions,
             "op_thread_descriptions_full": op_thread_descriptions_full,
             "op_thread_links": op_thread_links,
             "op_thread_keywords": op_thread_keywords,
             "op_user_signature": op_user_signature,
-            "op_reputation": int(op_reputation),
+            "op_user_reputation": int(op_user_reputation),
             "op_user_likes": int(op_user_likes),
             "op_user_group": op_user_group
         }
