@@ -1,15 +1,15 @@
 rules:
   - name: "Low Engagement Ban"
-    op_group: "member"
+    op_user_group: "member"
     conditions:
       op_user_posts: "< 20"
       op_user_threads: "< 10"
-      op_likes: "< 10"
+      op_user_likes: "< 10"
     blacklist_fields:
       - "descriptions"
       - "links"
   - name: "Suspicious Title Ban"
-    op_group: "member"
+    op_user_group: "member"
     conditions:
       op_user_posts: "< 5"
       op_user_threads: "< 5"

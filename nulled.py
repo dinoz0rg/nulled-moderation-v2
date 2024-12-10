@@ -101,10 +101,9 @@ def get_internal_thread_info(url):
         op_thread_keywords = soup.find('meta', {'name': 'keywords'}).get('content', '')
         op_user_signature = soup.find("div", class_="signature").get_text(strip=True) if soup.find("div", class_="signature") else ""
         op_reputation = soup.find('span', class_='x-smalltext', string='Rep').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Rep') else None
-        op_likes = soup.find('span', class_='x-smalltext', string='Likes').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Likes') else 0
-        op_group = soup.find('li', class_='group_icon').find('img')['src'].split('/')[-1].replace('.png', '') if soup.find('li', class_='group_icon') and soup.find('li', class_='group_icon').find('img') else None
-
-        return {
+        op_user_likes = soup.find('span', class_='x-smalltext', string='Likes').find_previous('strong').get_text(strip=True) if soup.find('span', class_='x-smalltext', string='Likes') else 0
+        op_user_group = soup.find('li', class_='group_icon').find('img')['src'].split('/')[-1].replace('.png', '') if soup.find('li', class_='group_icon') and soup.find('li', class_='group_icon').find('img') else None
+        ret = {
             "op_thread_url": url,
             "op_userid": op_userid,
             "op_user_posts": op_user_posts,
@@ -115,10 +114,12 @@ def get_internal_thread_info(url):
             "op_thread_links": op_thread_links,
             "op_thread_keywords": op_thread_keywords,
             "op_user_signature": op_user_signature,
-            "op_reputation": op_reputation,
-            "op_likes": int(op_likes),
-            "op_group": op_group
+            "op_reputation": int(op_reputation),
+            "op_user_likes": int(op_user_likes),
+            "op_user_group": op_user_group
         }
+        main_logger.debug(f"Parsed information: {ret}")
+        return ret
     except Exception as e:
         error_logger.error(f"Error parsing thread info from URL {url}: {e}")
         return None
@@ -174,7 +175,7 @@ def monitor_forum_page(page_url, page, rules_config_path="config/rules.yaml"):
             continue
 
         for rule in rules:
-            if thread_info['op_group'] == rule["op_group"]:
+            if thread_info['op_user_group'] == rule["op_user_group"]:
                 if evaluate_conditions(thread_info, rule["conditions"]):
                     for field in rule["blacklist_fields"]:
                         keywords = blacklist_data.get(field, [])

@@ -55,8 +55,6 @@ project/
   - Requests
   - ThreadPoolExecutor
 
----
-
 ## Setup Instructions
 
 ### Prerequisites
