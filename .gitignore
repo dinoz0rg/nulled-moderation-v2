@@ -7,7 +7,6 @@ fastapi_ver/*
 *.sql
 *.zip
 *.rar
-*.txt
 
 test*
 
