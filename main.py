@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
 
-AUTO_START_MONITOR = True  # Set this True to enable monitor auto-start
+AUTO_START_MONITOR = False  # Set this True to enable monitor auto-start
 
 
 class TableManager:
@@ -152,7 +152,7 @@ class HealthStatus(BaseModel):
     duration: int
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, tags=["Default"])
 async def root(request: Request, db: Session = Depends(get_db)):
     """Render the management page."""
     table_manager = TableManager(db)
@@ -164,34 +164,36 @@ async def root(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("index.html", {"request": request, **data})
 
 
-@app.get("/health", response_model=HealthStatus)
+@app.get("/health", response_model=HealthStatus, tags=["Default"])
 def health_check():
     """Perform a health check."""
     uptime_duration = datetime.now(timezone.utc) - start_time
     return {"status": "healthy", "duration": int(uptime_duration.total_seconds())}
 
 
-@app.post("/start-monitor")
+# Monitoring endpoints
+@app.post("/start-monitor", tags=["Monitoring"])
 def start_monitor_endpoint(max_threads: int = 5, page_range: int = 3, cycle_delay: int = 120):
-    """Endpoint to start the monitor with customizable parameters."""
+    """Start the monitor with customizable parameters."""
     monitor_manager.start(max_threads=max_threads, page_range=page_range, cycle_delay=cycle_delay)
     return {"status": "success", "message": "Monitor started."}
 
 
-@app.post("/stop-monitor")
+@app.post("/stop-monitor", tags=["Monitoring"])
 def stop_monitor_endpoint():
-    """Endpoint to stop the monitor."""
+    """Stop the monitor."""
     monitor_manager.stop()
     return {"status": "success", "message": "Monitor stopped."}
 
 
-@app.get("/check-jobs")
+@app.get("/check-jobs", tags=["Monitoring"])
 def check_jobs_endpoint():
-    """Endpoint to retrieve the status of all jobs."""
+    """Retrieve the status of all jobs."""
     return monitor_manager.check_jobs()
 
 
-@app.post("/edit/{table_name}/{id}")
+# Table management endpoints
+@app.post("/edit/{table_name}/{id}", tags=["Table Management"])
 async def edit_entry(table_name: str, id: Union[int, str], value: str = Form(...), db: Session = Depends(get_db)):
     """Edit or add table entry."""
     manager = TableManager(db)
@@ -199,12 +201,13 @@ async def edit_entry(table_name: str, id: Union[int, str], value: str = Form(...
     return {"status": "success", "id": id, "value": value}
 
 
-@app.post("/add/{table_name}")
+@app.post("/add/{table_name}", tags=["Table Management"])
 async def add_entry(table_name: str, value: str = Form(...), db: Session = Depends(get_db)):
     """Add a new table entry and return its ID."""
     manager = TableManager(db)
     new_id = manager.add_entry(table_name, value)
     return {"status": "success", "id": new_id, "value": value}
+
 
 
 if __name__ == "__main__":
