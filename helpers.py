@@ -42,7 +42,7 @@ def init_ban_logger(log_level):
     return cmd_logger
 
 
-def get_main_bot_logger():
+def get_main_logger():
     return logging.getLogger()
 
 

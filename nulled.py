@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from helpers import init_all_loggers, get_main_bot_logger, get_error_logger, get_ban_logger
+from helpers import init_all_loggers, get_main_logger, get_error_logger, get_ban_logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from database import get_all_blacklist_data, SessionLocal
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ header = {"User-Agent": os.getenv("USER_AGENT")}
 
 # Initialize loggers
 init_all_loggers("INFO")
-main_logger = get_main_bot_logger()
+main_logger = get_main_logger()
 error_logger = get_error_logger()
 ban_logger = get_ban_logger()
 
@@ -137,9 +137,9 @@ def field_match(field, keyword, thread_info):
     if field == "descriptions":
         return keyword.lower() in thread_info.get("op_thread_descriptions_full", "").lower()
     elif field == "links":
-        return keyword in thread_info.get("op_thread_links", "")
+        return keyword.lower() in thread_info.get("op_thread_links", "").lower()
     elif field == "titles":
-        return keyword in thread_info.get("op_thread_title", "")
+        return keyword.lower() in thread_info.get("op_thread_title", "").lower()
     return False
 
 # Ban a user by user ID
